@@ -24,7 +24,17 @@ import { auth, db, signIn, logOut, handleFirestoreError, OperationType } from '.
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Safe access to environment variables for production/APK
+const getGeminiKey = () => {
+  try {
+    // In Vite/Vercel/APK, process.env might not exist
+    return process.env.GEMINI_API_KEY || (import.meta as any).env?.VITE_GEMINI_API_KEY || "";
+  } catch (e) {
+    return "";
+  }
+};
+
+const ai = new GoogleGenAI({ apiKey: getGeminiKey() });
 
 export default function App() {
   const [user, setUser] = useState<any>(null);
@@ -34,8 +44,25 @@ export default function App() {
   const [showAddDevice, setShowAddDevice] = useState(false);
   const [showTerminal, setShowTerminal] = useState(false);
   const [showApi, setShowApi] = useState(false);
-  const [isApiLocked, setIsApiLocked] = useState(true);
+  
+  // Persist lock state to localStorage for APK/Web convenience
+  const [isApiLocked, setIsApiLocked] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('REHAN_SESSION_ACTIVE') !== 'TRUE';
+    }
+    return true;
+  });
   const [apiInput, setApiInput] = useState('');
+
+  const handleUnlock = () => {
+    if (apiInput === 'REHAN_786') {
+      setIsApiLocked(false);
+      localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
+    } else {
+      alert("INVALID_TOKEN // COUNTER_MEASURES_TRIGGERED");
+      setApiInput('');
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => {
@@ -79,19 +106,12 @@ export default function App() {
               placeholder="ENTER_TOKEN"
               value={apiInput}
               onChange={(e) => setApiInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && apiInput === 'REHAN_786' && setIsApiLocked(false)}
+              onKeyDown={(e) => e.key === 'Enter' && handleUnlock()}
               className="w-full bg-black border border-red-500/40 p-3 text-center text-red-500 outline-none focus:border-red-500 transition-colors uppercase placeholder:text-red-900/50"
             />
             <button 
-              onClick={() => {
-                if (apiInput === 'REHAN_786') {
-                  setIsApiLocked(false);
-                } else {
-                  alert("INVALID_TOKEN // COUNTER_MEASURES_TRIGGERED");
-                  setApiInput('');
-                }
-              }}
-              className="w-full py-3 bg-red-500/20 border border-red-500/40 text-red-500 font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+              onClick={handleUnlock}
+              className="w-full py-3 bg-red-500/20 border border-red-500/40 text-red-500 font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all active:bg-red-500/40"
             >
               BYPASS_LOCK
             </button>
