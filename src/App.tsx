@@ -20,7 +20,7 @@ import {
   Database,
   Key
 } from 'lucide-react';
-import { auth, db, signIn, logOut, handleFirestoreError, OperationType } from './firebase';
+import { auth, db, signIn, signInAnon, logOut, handleFirestoreError, OperationType } from './firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
 import { GoogleGenAI } from "@google/genai";
 
@@ -363,6 +363,13 @@ function AuthScreen() {
           className="w-full py-4 bg-[#00FF41] text-black font-bold uppercase tracking-widest hover:bg-[#00FF41]/80 transition-all active:scale-95 flex items-center justify-center gap-3"
         >
           <User className="w-5 h-5" /> INITIALIZE_UPLINK
+        </button>
+
+        <button 
+          onClick={() => signInAnon().catch(() => alert("APK_BYPASS_FAILED_CHECK_FIREBASE_CONFIG"))}
+          className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all"
+        >
+          [!] APK_BYPASS_MODE (ANONYMOUS_ACCESS)
         </button>
         <p className="text-[10px] opacity-30 uppercase">Authorized_Personnel_Only // IP_LOGGED</p>
       </motion.div>
