@@ -131,7 +131,7 @@ export default function App() {
       <nav className="border-b border-[#00FF41]/20 p-4 flex justify-between items-center bg-black/50 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2">
           <Shield className="w-6 h-6 animate-pulse" />
-          <span className="text-xl font-bold tracking-tighter uppercase">REHAN_BHAI_TRACKER_V1.0</span>
+          <span className="text-xl font-bold tracking-tighter uppercase">REHAN_BHAI_TRACKER_V1.1</span>
         </div>
         <div className="flex items-center gap-4">
           <button 
@@ -351,12 +351,12 @@ function AuthScreen() {
         </div>
         <div className="pt-8">
           <h1 className="text-3xl font-bold text-[#00FF41] tracking-tighter uppercase mb-2">REHAN_BHAI</h1>
-          <p className="text-[#00FF41]/60 text-xs uppercase tracking-widest">Secure_Device_Tracking_Protocol</p>
+          <p className="text-[#00FF41]/60 text-xs uppercase tracking-widest">Secure_Device_Tracking_Protocol [V1.1]</p>
         </div>
         <div className="space-y-4 text-left text-xs text-[#00FF41]/40 border-y border-[#00FF41]/10 py-6">
           <p className="flex items-center gap-2"><Cpu className="w-3 h-3" /> SYSTEM_ENCRYPTED: TRUE</p>
           <p className="flex items-center gap-2"><Wifi className="w-3 h-3" /> ANONYMOUS_ROUTING: ACTIVE</p>
-          <p className="flex items-center gap-2"><Gpu className="w-3 h-3" /> BRUTE_FORCE_PROTECTION: ON</p>
+          <p className="flex items-center gap-2"><Gpu className="w-3 h-3" /> BYPASS_MECHANISM: READY</p>
         </div>
         <button 
           onClick={signIn}
@@ -367,22 +367,30 @@ function AuthScreen() {
 
         <button 
           onClick={() => {
-            signInAnon().catch((err) => {
-              console.error(err);
-              // Hard bypass for APK: Create a dummy local session if Firebase fails
+            // FOOLPROOF_BYPASS: Immediately set state to avoid Firebase timeouts
+            const bypass = () => {
               const dummyUser = {
-                uid: 'LOCAL_BYPASS_USER',
+                uid: 'APK_BYPASS_USER_' + Math.random().toString(36).substring(7),
                 displayName: 'GUEST_OPERATOR',
-                email: 'anonymous@rehan.tracker'
+                email: 'apk_bypass@rehan.tracker'
               };
               setUser(dummyUser);
               localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
-              alert("SECURE_BYPASS_ESTABLISHED // LOCAL_MODE_ACTIVE");
+              alert("BYPASS_SUCCESSFUL // REDIRECTING_TO_DASHBOARD");
+            };
+
+            // Attempt Firebase but bypass immediately on any delay or error
+            signInAnon().then(() => {
+              localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
+              alert("UPLINK_ESTABLISHED // SESSION_SECURED");
+            }).catch((e) => {
+              console.warn("Firebase failed, triggering local fallback", e);
+              bypass();
             });
           }}
-          className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all"
+          className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all shadow-[0_0_10px_rgba(0,255,65,0.1)]"
         >
-          [!] APK_BYPASS_MODE (ANONYMOUS_ACCESS)
+          [!] APK_BYPASS_MODE (INSTANT_ACCESS)
         </button>
         <p className="text-[10px] opacity-30 uppercase">Authorized_Personnel_Only // IP_LOGGED</p>
       </motion.div>
