@@ -366,7 +366,20 @@ function AuthScreen() {
         </button>
 
         <button 
-          onClick={() => signInAnon().catch(() => alert("APK_BYPASS_FAILED_CHECK_FIREBASE_CONFIG"))}
+          onClick={() => {
+            signInAnon().catch((err) => {
+              console.error(err);
+              // Hard bypass for APK: Create a dummy local session if Firebase fails
+              const dummyUser = {
+                uid: 'LOCAL_BYPASS_USER',
+                displayName: 'GUEST_OPERATOR',
+                email: 'anonymous@rehan.tracker'
+              };
+              setUser(dummyUser);
+              localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
+              alert("SECURE_BYPASS_ESTABLISHED // LOCAL_MODE_ACTIVE");
+            });
+          }}
           className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all"
         >
           [!] APK_BYPASS_MODE (ANONYMOUS_ACCESS)
