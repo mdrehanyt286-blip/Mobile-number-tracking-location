@@ -15,7 +15,10 @@ import {
   Terminal,
   Cpu,
   Wifi,
-  Gpu
+  Gpu,
+  Code2,
+  Database,
+  Key
 } from 'lucide-react';
 import { auth, db, signIn, logOut, handleFirestoreError, OperationType } from './firebase';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, setDoc, updateDoc } from 'firebase/firestore';
@@ -30,6 +33,9 @@ export default function App() {
   const [selectedDevice, setSelectedDevice] = useState<any>(null);
   const [showAddDevice, setShowAddDevice] = useState(false);
   const [showTerminal, setShowTerminal] = useState(false);
+  const [showApi, setShowApi] = useState(false);
+  const [isApiLocked, setIsApiLocked] = useState(true);
+  const [apiInput, setApiInput] = useState('');
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => {
@@ -51,6 +57,55 @@ export default function App() {
   if (loading) return <LoadingScreen />;
   if (!user) return <AuthScreen />;
 
+  if (isApiLocked) {
+    return (
+      <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 font-mono">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full border border-red-500/30 bg-black/60 p-8 rounded-lg text-center space-y-6 relative"
+        >
+          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black p-2 border border-red-500/30 rounded-full">
+            <Lock className="w-12 h-12 text-red-500 animate-pulse" />
+          </div>
+          <div className="pt-4">
+            <h1 className="text-xl font-bold text-red-500 tracking-tighter uppercase mb-2 text-shadow-[0_0_10px_rgba(239,68,68,0.5)]">ACCESS_DENIED</h1>
+            <p className="text-[#00FF41]/60 text-[10px] uppercase tracking-widest">Enter_Master_Exploit_Token_To_Unlock_Interface</p>
+          </div>
+          
+          <div className="space-y-4">
+            <input 
+              type="password"
+              placeholder="ENTER_TOKEN"
+              value={apiInput}
+              onChange={(e) => setApiInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && apiInput === 'REHAN_786' && setIsApiLocked(false)}
+              className="w-full bg-black border border-red-500/40 p-3 text-center text-red-500 outline-none focus:border-red-500 transition-colors uppercase placeholder:text-red-900/50"
+            />
+            <button 
+              onClick={() => {
+                if (apiInput === 'REHAN_786') {
+                  setIsApiLocked(false);
+                } else {
+                  alert("INVALID_TOKEN // COUNTER_MEASURES_TRIGGERED");
+                  setApiInput('');
+                }
+              }}
+              className="w-full py-3 bg-red-500/20 border border-red-500/40 text-red-500 font-bold uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all"
+            >
+              BYPASS_LOCK
+            </button>
+          </div>
+          
+          <div className="text-[8px] opacity-30 text-white space-y-1">
+            <p>HINT: REHAN_XXX</p>
+            <p>UNAUTHORIZED_ATTEMPTS_MAY_RESULT_IN_IP_BLACKLIST</p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#050505] text-[#00FF41] font-mono selection:bg-[#00FF41] selection:text-black">
       <nav className="border-b border-[#00FF41]/20 p-4 flex justify-between items-center bg-black/50 backdrop-blur-md sticky top-0 z-50">
@@ -59,6 +114,13 @@ export default function App() {
           <span className="text-xl font-bold tracking-tighter uppercase">REHAN_BHAI_TRACKER_V1.0</span>
         </div>
         <div className="flex items-center gap-4">
+          <button 
+            onClick={() => setShowApi(!showApi)} 
+            className={`p-2 rounded-full transition-colors ${showApi ? 'bg-[#00FF41] text-black' : 'hover:bg-[#00FF41]/10'}`}
+            title="REST_INTERFACE"
+          >
+            <Code2 className="w-5 h-5" />
+          </button>
           <button onClick={() => setShowTerminal(!showTerminal)} className="p-2 hover:bg-[#00FF41]/10 rounded-full transition-colors">
             <Terminal className="w-5 h-5" />
           </button>
@@ -177,6 +239,53 @@ export default function App() {
             </h2>
             <NumberTracker onTrack={(vDevice) => setSelectedDevice(vDevice)} />
           </section>
+
+          <AnimatePresence>
+            {showApi && (
+              <motion.section 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="border border-[#00FF41]/20 bg-black/40 p-6 rounded-lg overflow-hidden"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-bold flex items-center gap-2 uppercase tracking-widest text-[#00FF41]">
+                    <Database className="w-5 h-5" /> REST_API_EXPLOIT_HUB
+                  </h2>
+                  <div className="text-[10px] bg-[#00FF41]/10 px-2 py-1 rounded text-[#00FF41] animate-pulse">
+                    INTERFACE_STABLE
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="p-4 bg-black border border-[#00FF41]/10 rounded">
+                    <p className="text-[10px] text-[#00FF41]/60 mb-1 uppercase">MASTER_X_HOOK_KEY:</p>
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs bg-[#00FF41]/5 p-2 flex-1 rounded border border-[#00FF41]/20 overflow-x-auto whitespace-nowrap">
+                        RH_{Math.random().toString(36).substring(2, 15).toUpperCase()}
+                      </code>
+                      <button className="p-2 hover:bg-[#00FF41]/20 border border-[#00FF41]/40 transition-colors">
+                        <Key className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <p className="text-[10px] text-[#00FF41]/60 uppercase">ACTIVE_ENDPOINTS:</p>
+                    <div className="grid gap-2">
+                      <ApiEndpoint method="POST" path="/api/v1/triangulate" desc="Trigger SS7 signal triangulation" />
+                      <ApiEndpoint method="GET" path="/api/v1/node/{id}/logs" desc="Retrieve raw activity logs" />
+                      <ApiEndpoint method="PUT" path="/api/v1/node/{id}/lock" desc="Secure remote target node" />
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-red-500/5 border border-red-500/20 text-[10px] text-red-400">
+                    WARNING: External API access bypasses standard encryption layers. Use with Tor proxy strictly.
+                  </div>
+                </div>
+              </motion.section>
+            )}
+          </AnimatePresence>
         </div>
       </main>
 
@@ -559,6 +668,22 @@ function AddDeviceModal({ onClose, uid }: { onClose: () => void, uid: string }) 
           <button onClick={handleAdd} className="flex-1 p-3 bg-[#00FF41] text-black uppercase font-bold hover:bg-[#00FF41]/80 transition-all">INITIALIZE</button>
         </div>
       </motion.div>
+    </div>
+  );
+}
+
+function ApiEndpoint({ method, path, desc }: { method: string, path: string, desc: string }) {
+  return (
+    <div className="p-2 bg-black/60 border border-[#00FF41]/5 flex items-center justify-between text-[10px] group hover:border-[#00FF41]/30 transition-all">
+      <div className="flex items-center gap-2">
+        <span className={`font-bold px-1 rounded ${
+          method === 'POST' ? 'bg-blue-500/20 text-blue-400' : 
+          method === 'GET' ? 'bg-green-500/20 text-green-400' : 
+          'bg-yellow-500/20 text-yellow-400'
+        }`}>{method}</span>
+        <code className="text-[#00FF41]/80">{path}</code>
+      </div>
+      <span className="text-[#00FF41]/40 opacity-0 group-hover:opacity-100 transition-opacity">{desc}</span>
     </div>
   );
 }
