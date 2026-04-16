@@ -106,7 +106,7 @@ export default function App() {
   }, [user]);
 
   if (loading) return <LoadingScreen />;
-  if (!user) return <AuthScreen />;
+  if (!user) return <AuthScreen setUser={setUser} />;
 
   if (isApiLocked) {
     return (
@@ -393,7 +393,9 @@ function LoadingScreen() {
   );
 }
 
-function AuthScreen() {
+function AuthScreen({ setUser }: { setUser: (u: any) => void }) {
+  const [apiKey, setApiKey] = useState(localStorage.getItem('USER_GEMINI_KEY') || '');
+
   return (
     <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4 font-mono">
       <motion.div 
@@ -413,35 +415,57 @@ function AuthScreen() {
           <p className="flex items-center gap-2"><Wifi className="w-3 h-3" /> ANONYMOUS_ROUTING: ACTIVE</p>
           <p className="flex items-center gap-2"><Gpu className="w-3 h-3" /> BYPASS_MECHANISM: READY</p>
         </div>
-        <button 
-          onClick={signIn}
-          className="w-full py-4 bg-[#00FF41] text-black font-bold uppercase tracking-widest hover:bg-[#00FF41]/80 transition-all active:scale-95 flex items-center justify-center gap-3"
-        >
-          <User className="w-5 h-5" /> INITIALIZE_UPLINK
-        </button>
 
-        <button 
-          onClick={() => {
-            // FORCED_LOCAL_BYPASS: Bypassing Firebase middleware entirely for instant APK access
-            const dummyUser = {
-              uid: 'APK_BYPASS_USER_' + Math.random().toString(36).substring(7),
-              displayName: 'GUEST_OPERATOR',
-              email: 'apk_bypass@rehan.tracker'
-            };
-            
-            // Set persistence first
-            localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
-            // Update state
-            setUser(dummyUser);
-            alert("BYPASS_SUCCESSFUL // REDIRECTING_TO_DASHBOARD");
-            
-            // Background attempt to warm up Firebase if possible
-            signInAnon().catch(() => console.log("Silent background login failed - expected in APK"));
-          }}
-          className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all shadow-[0_0_10px_rgba(0,255,65,0.1)]"
-        >
-          [!] APK_BYPASS_MODE (INSTANT_ACCESS)
-        </button>
+        <div className="space-y-2 text-left">
+          <label className="text-[10px] uppercase text-[#00FF41]/60 px-1 font-bold">CONFIG_EXTERNAL_CORE (OPTIONAL)</label>
+          <div className="relative group">
+            <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-[#00FF41]/40 group-focus-within:text-[#00FF41]" />
+            <input 
+              type="password"
+              placeholder="ENTER_GEMINI_API_KEY"
+              value={apiKey}
+              onChange={(e) => {
+                const val = e.target.value;
+                setApiKey(val);
+                if (val) localStorage.setItem('USER_GEMINI_KEY', val);
+                else localStorage.removeItem('USER_GEMINI_KEY');
+              }}
+              className="w-full bg-black/40 border border-[#00FF41]/20 p-3 pl-8 text-[10px] text-[#00FF41] outline-none focus:border-[#00FF41] transition-all placeholder:text-[#00FF41]/20"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <button 
+            onClick={signIn}
+            className="w-full py-4 bg-[#00FF41] text-black font-bold uppercase tracking-widest hover:bg-[#00FF41]/80 transition-all active:scale-95 flex items-center justify-center gap-3"
+          >
+            <User className="w-5 h-5" /> INITIALIZE_UPLINK
+          </button>
+
+          <button 
+            onClick={() => {
+              // FORCED_LOCAL_BYPASS: Bypassing Firebase middleware entirely for instant APK access
+              const dummyUser = {
+                uid: 'APK_BYPASS_USER_' + Math.random().toString(36).substring(7),
+                displayName: 'GUEST_OPERATOR',
+                email: 'apk_bypass@rehan.tracker'
+              };
+              
+              // Set persistence first
+              localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
+              // Update state
+              setUser(dummyUser);
+              alert("BYPASS_SUCCESSFUL // REDIRECTING_TO_DASHBOARD");
+              
+              // Background attempt to warm up Firebase if possible
+              signInAnon().catch(() => console.log("Silent background login failed - expected in APK"));
+            }}
+            className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all shadow-[0_0_10px_rgba(0,255,65,0.1)]"
+          >
+            [!] APK_BYPASS_MODE (INSTANT_ACCESS)
+          </button>
+        </div>
         <p className="text-[10px] opacity-30 uppercase">Authorized_Personnel_Only // IP_LOGGED</p>
       </motion.div>
     </div>
