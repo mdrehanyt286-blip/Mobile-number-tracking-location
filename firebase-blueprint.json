@@ -1,0 +1,65 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Device": {
+      "title": "Device",
+      "description": "Registered tracking device",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "ownerUid": { "type": "string" },
+        "name": { "type": "string" },
+        "model": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "isLost": { "type": "boolean" },
+        "lastLocation": { "$ref": "Location" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["deviceId", "ownerUid"]
+    },
+    "Location": {
+      "title": "Location",
+      "description": "GPS coordinates and timestamp",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "latitude": { "type": "number" },
+        "longitude": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "accuracy": { "type": "number" }
+      },
+      "required": ["deviceId", "latitude", "longitude", "timestamp"]
+    },
+    "Command": {
+      "title": "Command",
+      "description": "Remote control command for device",
+      "type": "object",
+      "properties": {
+        "deviceId": { "type": "string" },
+        "type": { "type": "string", "enum": ["RING", "LOCK", "LOST_MODE"] },
+        "payload": { "type": "string" },
+        "status": { "type": "string", "enum": ["PENDING", "EXECUTED", "FAILED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["deviceId", "type", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": { "schema": "User", "description": "User profiles" },
+    "/devices/{deviceId}": { "schema": "Device", "description": "Device registry" },
+    "/devices/{deviceId}/locations/{locationId}": { "schema": "Location", "description": "Location history" },
+    "/devices/{deviceId}/commands/{commandId}": { "schema": "Command", "description": "Device commands" }
+  }
+}

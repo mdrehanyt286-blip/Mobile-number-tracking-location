@@ -1,0 +1,61 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    function isDeviceOwner(deviceId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/devices/$(deviceId)) &&
+             get(/databases/$(database)/documents/devices/$(deviceId)).data.ownerUid == request.auth.uid;
+    }
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.uid == request.auth.uid;
+    }
+    function isValidDevice(data) {
+      return data.keys().hasAll(['deviceId', 'ownerUid']) &&
+             data.deviceId is string &&
+             data.ownerUid == request.auth.uid;
+    }
+    function isValidLocation(data) {
+      return data.keys().hasAll(['deviceId', 'latitude', 'longitude', 'timestamp']) &&
+             data.deviceId is string &&
+             data.latitude is number &&
+             data.longitude is number;
+    }
+    function isValidCommand(data) {
+      return data.keys().hasAll(['deviceId', 'type', 'status']) &&
+             data.deviceId is string &&
+             data.type in ['RING', 'LOCK', 'LOST_MODE'] &&
+             data.status in ['PENDING', 'EXECUTED', 'FAILED'];
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      allow create, update: if isOwner(uid) && isValidUser(request.resource.data);
+    }
+
+    match /devices/{deviceId} {
+      allow read: if isAuthenticated() && (resource.data.ownerUid == request.auth.uid);
+      allow create: if isAuthenticated() && isValidDevice(request.resource.data);
+      allow update: if isDeviceOwner(deviceId) && isValidDevice(request.resource.data);
+    }
+
+    match /devices/{deviceId}/locations/{locationId} {
+      allow read: if isDeviceOwner(deviceId);
+      allow create: if isDeviceOwner(deviceId) && isValidLocation(request.resource.data);
+    }
+
+    match /devices/{deviceId}/commands/{commandId} {
+      allow read: if isDeviceOwner(deviceId);
+      allow create: if isDeviceOwner(deviceId) && isValidCommand(request.resource.data);
+      allow update: if isDeviceOwner(deviceId) && isValidCommand(request.resource.data);
+    }
+  }
+}

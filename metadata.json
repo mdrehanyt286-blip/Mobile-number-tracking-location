@@ -1,0 +1,6 @@
+{
+  "name": "My Device Tracker",
+  "description": "Advanced device tracking and recovery system with number lookup capabilities.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}
