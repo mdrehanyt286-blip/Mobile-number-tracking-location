@@ -66,7 +66,21 @@ export default function App() {
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => {
-      setUser(u);
+      // Logic for APK/Local Bypass: Do not override if we are in GUEST_MODE
+      const isLocalActive = localStorage.getItem('REHAN_SESSION_ACTIVE') === 'TRUE';
+      
+      if (u) {
+        setUser(u);
+      } else if (isLocalActive) {
+        // Maintain local guest session
+        setUser({
+          uid: 'LOCAL_BYPASS_USER',
+          displayName: 'GUEST_OPERATOR',
+          email: 'apk_bypass@rehan.tracker'
+        });
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -367,26 +381,21 @@ function AuthScreen() {
 
         <button 
           onClick={() => {
-            // FOOLPROOF_BYPASS: Immediately set state to avoid Firebase timeouts
-            const bypass = () => {
-              const dummyUser = {
-                uid: 'APK_BYPASS_USER_' + Math.random().toString(36).substring(7),
-                displayName: 'GUEST_OPERATOR',
-                email: 'apk_bypass@rehan.tracker'
-              };
-              setUser(dummyUser);
-              localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
-              alert("BYPASS_SUCCESSFUL // REDIRECTING_TO_DASHBOARD");
+            // FORCED_LOCAL_BYPASS: Bypassing Firebase middleware entirely for instant APK access
+            const dummyUser = {
+              uid: 'APK_BYPASS_USER_' + Math.random().toString(36).substring(7),
+              displayName: 'GUEST_OPERATOR',
+              email: 'apk_bypass@rehan.tracker'
             };
-
-            // Attempt Firebase but bypass immediately on any delay or error
-            signInAnon().then(() => {
-              localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
-              alert("UPLINK_ESTABLISHED // SESSION_SECURED");
-            }).catch((e) => {
-              console.warn("Firebase failed, triggering local fallback", e);
-              bypass();
-            });
+            
+            // Set persistence first
+            localStorage.setItem('REHAN_SESSION_ACTIVE', 'TRUE');
+            // Update state
+            setUser(dummyUser);
+            alert("BYPASS_SUCCESSFUL // REDIRECTING_TO_DASHBOARD");
+            
+            // Background attempt to warm up Firebase if possible
+            signInAnon().catch(() => console.log("Silent background login failed - expected in APK"));
           }}
           className="w-full py-3 border border-[#00FF41]/20 text-[#00FF41]/60 text-[10px] uppercase tracking-[0.3em] hover:bg-[#00FF41]/5 transition-all shadow-[0_0_10px_rgba(0,255,65,0.1)]"
         >
